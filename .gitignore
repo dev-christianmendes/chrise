@@ -1,0 +1,16 @@
+node_modules
+dist
+dist-ssr
+*.local
+.env
+.env.local
+.env.*.local
+.env.production-data
+coverage
+.vite
+*.log
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea
+supabase/.temp

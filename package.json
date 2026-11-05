@@ -1,0 +1,23 @@
+{
+  "name": "chrise",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Chrise — finanças sem crise. Controle financeiro preditivo para PJ.",
+  "type": "module",
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "dev": "npm run dev -w @chrise/web",
+    "dev:prod": "npm run dev:prod -w @chrise/web",
+    "build": "npm run build -w @chrise/web",
+    "build:demo": "npm run build:demo -w @chrise/web",
+    "preview": "npm run preview -w @chrise/web",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc -p packages/core && tsc -p packages/data && tsc -p apps/web/tsconfig.app.json",
+    "lint": "npm run lint -w @chrise/web"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  }
+}

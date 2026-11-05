@@ -1,0 +1,12 @@
+{
+  "name": "@chrise/data",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Camada de dados: interface Repository + adapters mock e Supabase.",
+  "exports": { ".": "./src/index.ts" },
+  "dependencies": {
+    "@chrise/core": "*",
+    "@supabase/supabase-js": "^2.49.0"
+  }
+}
