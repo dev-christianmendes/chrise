@@ -23,3 +23,6 @@ privado/
 *.pdf
 *.xml
 supabase/seed.local.sql
+
+# Vínculo local com a Vercel (o .env.local com o token OIDC já é ignorado acima)
+.vercel
