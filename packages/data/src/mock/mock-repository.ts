@@ -101,6 +101,13 @@ export class MockRepository implements FinanceRepository {
     return this.delay(tx);
   }
 
+  createTransactions(inputs: NewTransaction[]) {
+    const txs = inputs.map((input): Transaction => ({ ...input, id: `local-${crypto.randomUUID()}` }));
+    this.changes.added.push(...txs);
+    this.commit();
+    return this.delay(txs);
+  }
+
   updateTransaction(id: string, patch: Partial<NewTransaction>) {
     const current = this.allTransactions().find((t) => t.id === id);
     if (!current) return Promise.reject(new Error(`Transação ${id} não encontrada`));

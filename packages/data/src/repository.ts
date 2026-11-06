@@ -20,6 +20,8 @@ export interface FinanceRepository {
 
   listTransactions(filter?: TransactionFilter): Promise<Transaction[]>;
   createTransaction(input: NewTransaction): Promise<Transaction>;
+  /** Inserção em lote (importação de extrato): tudo ou nada. */
+  createTransactions(inputs: NewTransaction[]): Promise<Transaction[]>;
   updateTransaction(id: string, patch: Partial<NewTransaction>): Promise<Transaction>;
   deleteTransaction(id: string): Promise<void>;
 

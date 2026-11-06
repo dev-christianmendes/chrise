@@ -36,7 +36,7 @@ A demo pública roda **100% no navegador**, com 24 meses de dados fictícios de 
 | | |
 |---|---|
 | **Visão geral** | Saldo, receitas e despesas do mês, taxa de poupança, insights priorizados, gráfico de 12 meses com previsão de 6 |
-| **Lançamentos** | Lista agrupada por mês, busca e filtros, lançamento rápido com botão flutuante (atalho do PWA: "Novo lançamento") |
+| **Lançamentos** | Lista agrupada por mês, busca e filtros, lançamento rápido com botão flutuante (atalho do PWA: "Novo lançamento"), importação de extrato OFX/CSV com categorização automática e detecção de duplicados |
 | **Previsões** | Saldo projetado em 12 meses com faixa de 80%, previsão por categoria com tendência, simulador de juros compostos e meta |
 | **Impostos PJ** | DAS do mês, RBT12, alíquota efetiva, Fator R, simulador de pró-labore (Anexo III × V) e histórico |
 | **Orçamentos** | Limites por categoria com alerta em 80% e 100% |
@@ -118,7 +118,7 @@ npm run build:demo   # build estático da demo (GitHub Pages)
 - [x] Monorepo, `core` testado, demo mock, PWA
 - [x] Impostos PJ (DAS, Fator R, simulador de pró-labore)
 - [x] Previsões, anomalias, simulador de longo prazo
-- [ ] Importação de extrato OFX/CSV com regras de categorização
+- [x] Importação de extrato OFX/CSV com regras de categorização
 - [ ] Lançamento offline com fila de sincronização (IndexedDB)
 - [ ] Web Push: vencimento do DAS e alerta de orçamento
 - [ ] Resumo mensal em linguagem natural (LLM recebendo só métricas agregadas)

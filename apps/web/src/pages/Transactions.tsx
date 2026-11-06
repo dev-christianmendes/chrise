@@ -1,12 +1,13 @@
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Plus, Search, Trash2 } from "lucide-react";
+import { FileUp, Plus, Search, Trash2 } from "lucide-react";
 import { formatBRL, monthLabel, toYearMonth } from "@chrise/core";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PageHeader } from "@/components/Layout";
+import { ImportDialog } from "@/components/ImportDialog";
 import { TransactionForm } from "@/components/TransactionForm";
 import { ErrorState, PageSkeleton } from "@/components/states";
 import { useCategories, useDeleteTransaction, useTransactions } from "@/hooks/use-finance";
@@ -22,6 +23,8 @@ export default function Transactions() {
   const [category, setCategory] = useState("all");
   const formOpen = params.get("new") === "1";
   const setFormOpen = (open: boolean) => setParams(open ? { new: "1" } : {}, { replace: true });
+  const importOpen = params.get("import") === "1";
+  const setImportOpen = (open: boolean) => setParams(open ? { import: "1" } : {}, { replace: true });
 
   const categoryName = useMemo(() => new Map(categories.map((c) => [c.id, c.name])), [categories]);
 
@@ -46,9 +49,14 @@ export default function Transactions() {
       <PageHeader
         title="Lançamentos"
         action={
-          <Button onClick={() => setFormOpen(true)} className="gap-2 hidden md:inline-flex">
-            <Plus className="w-4 h-4" /> Novo
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setImportOpen(true)} className="gap-2">
+              <FileUp className="w-4 h-4" /> Importar
+            </Button>
+            <Button onClick={() => setFormOpen(true)} className="gap-2 hidden md:inline-flex">
+              <Plus className="w-4 h-4" /> Novo
+            </Button>
+          </div>
         }
       />
 
@@ -141,6 +149,7 @@ export default function Transactions() {
       </Button>
 
       <TransactionForm open={formOpen} onOpenChange={setFormOpen} />
+      <ImportDialog open={importOpen} onOpenChange={setImportOpen} />
     </div>
   );
 }

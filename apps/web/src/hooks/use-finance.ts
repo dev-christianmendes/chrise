@@ -61,6 +61,14 @@ export function useCreateTransaction() {
   });
 }
 
+export function useImportTransactions() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (inputs: NewTransaction[]) => repository.createTransactions(inputs),
+    onSuccess: () => qc.invalidateQueries({ queryKey: keys.transactions }),
+  });
+}
+
 export function useDeleteTransaction() {
   const qc = useQueryClient();
   return useMutation({
