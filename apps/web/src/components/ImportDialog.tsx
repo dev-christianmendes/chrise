@@ -131,7 +131,7 @@ export function ImportDialog({ open, onOpenChange }: { open: boolean; onOpenChan
 
   return (
     <Dialog open={open} onOpenChange={close}>
-      <DialogContent className="max-w-3xl max-h-[92dvh] flex flex-col gap-4">
+      <DialogContent className="sm:max-w-3xl max-h-[92dvh] flex flex-col gap-4">
         <DialogHeader>
           <DialogTitle>Importar extrato</DialogTitle>
           <DialogDescription>
@@ -203,7 +203,7 @@ export function ImportDialog({ open, onOpenChange }: { open: boolean; onOpenChan
               </div>
             </div>
 
-            <label className="flex items-center justify-between gap-3 rounded-lg border border-border p-3">
+            <label className="flex items-center justify-between gap-3 rounded-2xl border border-border p-3">
               <span className="text-sm">
                 Inverter sinais
                 <span className="block text-xs text-muted-foreground">
@@ -221,7 +221,7 @@ export function ImportDialog({ open, onOpenChange }: { open: boolean; onOpenChan
               />
             </label>
 
-            <div className="min-h-0 flex-1 overflow-y-auto rounded-lg border border-border divide-y divide-border">
+            <div className="min-h-0 flex-1 overflow-y-auto rounded-2xl border border-border divide-y divide-border">
               {rows.map((r) => (
                 <div key={r.importTag} className={cn("flex flex-col gap-2 px-3 py-2.5 sm:flex-row sm:items-center", !r.include && "opacity-50")}>
                   <label className="flex min-w-0 flex-1 items-center gap-3">
@@ -241,7 +241,7 @@ export function ImportDialog({ open, onOpenChange }: { open: boolean; onOpenChan
                         )}
                       </span>
                     </span>
-                    <span className={cn("text-sm font-semibold tabular-nums", r.kind === "income" ? "text-success" : "text-danger")}>
+                    <span className={cn("text-sm font-semibold tabular-nums", r.kind === "income" && "text-income")}>
                       {r.kind === "income" ? "+" : "−"}
                       {formatBRL(r.amount)}
                     </span>
@@ -251,7 +251,7 @@ export function ImportDialog({ open, onOpenChange }: { open: boolean; onOpenChan
                     value={r.categoryId}
                     onChange={(e) => setCategory(r, e.target.value)}
                     className={cn(
-                      "h-9 rounded-md border bg-background px-2 text-sm sm:w-48 ml-7 sm:ml-0",
+                      "h-9 rounded-full border bg-background/60 px-3 text-sm sm:w-48 ml-7 sm:ml-0",
                       r.categorySource === "fallback" && r.include ? "border-warning" : "border-input",
                     )}
                   >
@@ -267,8 +267,8 @@ export function ImportDialog({ open, onOpenChange }: { open: boolean; onOpenChan
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-xs text-muted-foreground">
-                <span className="text-success tabular-nums">+{formatBRL(stats.income)}</span> ·{" "}
-                <span className="text-danger tabular-nums">−{formatBRL(stats.expense)}</span>
+                <span className="money text-income">+{formatBRL(stats.income)}</span> ·{" "}
+                <span className="money text-foreground">−{formatBRL(stats.expense)}</span>
                 {stats.uncategorized > 0 && <> · {stats.uncategorized} sem categoria reconhecida (borda amarela)</>}
               </p>
               <Button onClick={submit} disabled={stats.selected === 0 || !account || importMutation.isPending}>

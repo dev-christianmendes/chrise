@@ -6,3 +6,4 @@ export * from "./forecast";
 export * from "./tax/simples";
 export * from "./insights";
 export * from "./import";
+export * from "./allowance";
