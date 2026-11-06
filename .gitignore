@@ -14,3 +14,12 @@ coverage
 !.vscode/extensions.json
 .idea
 supabase/.temp
+
+# Dados financeiros pessoais: NUNCA versionar (este repositório é público)
+privado/
+*.ofx
+*.qfx
+*.csv
+*.pdf
+*.xml
+supabase/seed.local.sql

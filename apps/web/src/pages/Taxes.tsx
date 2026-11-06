@@ -8,6 +8,7 @@ import {
   formatBRL,
   formatBRLCompact,
   formatPercent,
+  INSS_PARAMS,
   lastMonths,
   monthLabel,
   simplesForMonth,
@@ -153,7 +154,7 @@ export default function Taxes() {
               <span className="text-sm">Simular pró-labore</span>
               <Money value={simProLabore} className="text-xl font-semibold" />
             </div>
-            <Slider value={[simProLabore]} min={toCents(1_518)} max={max} step={5_000} onValueChange={([v]) => setSimProLabore(v!)} aria-label="Pró-labore simulado" />
+            <Slider value={[simProLabore]} min={INSS_PARAMS.minimumWage} max={max} step={5_000} onValueChange={([v]) => setSimProLabore(v!)} aria-label="Pró-labore simulado" />
             <div className="flex flex-wrap gap-2">
               <Button size="sm" variant="outline" onClick={() => setSimProLabore(actual.minProLaboreForAnexoIII)}>
                 Mínimo p/ Anexo III · {formatBRLCompact(actual.minProLaboreForAnexoIII)}

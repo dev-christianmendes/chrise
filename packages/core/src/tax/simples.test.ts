@@ -4,6 +4,7 @@ import {
   calculateSimples,
   computeRBT12,
   effectiveRate,
+  INSS_PARAMS,
   inssOnProLabore,
   minProLaboreForAnexoIII,
 } from "./simples";
@@ -55,7 +56,7 @@ describe("Fator R", () => {
   });
 
   it("respeita o salário mínimo como piso", () => {
-    expect(minProLaboreForAnexoIII(R(30_000))).toBe(R(1_518));
+    expect(minProLaboreForAnexoIII(R(30_000))).toBe(INSS_PARAMS.minimumWage);
   });
 });
 
@@ -65,7 +66,7 @@ describe("INSS sobre pró-labore", () => {
   });
 
   it("limitado ao teto", () => {
-    expect(inssOnProLabore(R(20_000))).toBe(R(897.32));
+    expect(inssOnProLabore(R(20_000))).toBe(R(932.31)); // 11% × teto 2026 (R$ 8.475,55)
   });
 });
 
@@ -88,7 +89,7 @@ describe("calculateSimples", () => {
     const r = calculateSimples({
       monthRevenue: R(20_000),
       previousRevenues: months(12, 20_000),
-      proLabore: R(1_518),
+      proLabore: INSS_PARAMS.minimumWage,
     });
     expect(r.anexo).toBe("V");
     expect(r.das).toBe(R(3_225));
