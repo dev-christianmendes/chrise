@@ -92,6 +92,13 @@ export class SupabaseRepository implements FinanceRepository {
     return toTransaction(row);
   }
 
+  async createTransactions(inputs: NewTransaction[]) {
+    if (inputs.length === 0) return [];
+    // Um único INSERT: o Postgres grava tudo ou nada.
+    const rows = unwrap<Row[]>(await this.db.from("transactions").insert(inputs.map(fromTransaction)).select());
+    return rows.map(toTransaction);
+  }
+
   async updateTransaction(id: string, patch: Partial<NewTransaction>) {
     const row = unwrap<Row>(
       await this.db.from("transactions").update(fromTransaction(patch)).eq("id", id).select().single(),
