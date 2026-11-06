@@ -1,126 +1,127 @@
+@import "@fontsource-variable/manrope";
+@import "@fontsource-variable/space-grotesk";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/*
+ * Chrise · "Cofre noturno"
+ *
+ * Grafite quente + verde-limão. O limão é reservado para o que é SEU dinheiro
+ * (livre, receitas, ação principal). Despesa é neutra; vermelho (coral) só
+ * para alerta de verdade, não para cada gasto.
+ *
+ * Cores em HSL (canais), consumidas como hsl(var(--x)).
+ */
 
 @layer base {
   :root {
-    --background: 220 20% 97%;
-    --foreground: 220 15% 15%;
+    /* Tema claro: papel quente, tinta grafite. Botão principal = tinta com texto limão. */
+    --background: 40 22% 95%;
+    --foreground: 30 12% 9%;
+    --card: 40 30% 99%;
+    --card-foreground: 30 12% 9%;
+    --popover: 40 30% 99%;
+    --popover-foreground: 30 12% 9%;
+    --primary: 30 12% 9%;
+    --primary-foreground: 76 92% 62%;
+    --secondary: 40 14% 90%;
+    --secondary-foreground: 30 12% 9%;
+    --muted: 40 14% 90%;
+    --muted-foreground: 30 6% 40%;
+    --accent: 40 14% 90%;
+    --accent-foreground: 30 12% 9%;
+    --border: 38 12% 85%;
+    --input: 38 12% 82%;
+    --ring: 82 70% 38%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 220 15% 15%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 15% 15%;
-
-    --primary: 217 91% 60%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 220 15% 92%;
-    --secondary-foreground: 220 15% 15%;
-
-    --muted: 220 15% 92%;
-    --muted-foreground: 220 10% 45%;
-
-    --accent: 217 91% 60%;
-    --accent-foreground: 0 0% 100%;
-
-    --success: 142 76% 36%;
+    /* Semânticas */
+    --lime: 76 92% 62%;
+    --income: 88 70% 30%;
+    --success: 88 70% 30%;
     --success-foreground: 0 0% 100%;
-
-    --danger: 0 72% 51%;
+    --danger: 6 72% 50%;
     --danger-foreground: 0 0% 100%;
-
-    --warning: 38 92% 50%;
+    --destructive: 6 72% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --warning: 34 90% 42%;
     --warning-foreground: 0 0% 100%;
-
-    --info: 188 94% 43%;
+    --info: 205 70% 42%;
     --info-foreground: 0 0% 100%;
 
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
+    /* Grupos de categoria: cor = intuição (casa sempre azul, pets sempre rosa…) */
+    --g-receita: 82 70% 38%;
+    --g-moradia: 205 70% 48%;
+    --g-alimentacao: 24 88% 52%;
+    --g-pets: 330 65% 55%;
+    --g-transporte: 258 60% 60%;
+    --g-saude: 168 60% 38%;
+    --g-lazer: 44 92% 45%;
+    --g-assinaturas: 286 50% 55%;
+    --g-educacao: 190 70% 40%;
+    --g-impostos: 6 72% 52%;
+    --g-outros: 30 6% 50%;
 
-    --border: 220 15% 88%;
-    --input: 220 15% 88%;
-    --ring: 217 91% 60%;
+    --chart-1: 205 70% 48%;
+    --chart-2: 24 88% 52%;
+    --chart-3: 330 65% 55%;
+    --chart-4: 258 60% 60%;
+    --chart-5: 168 60% 38%;
 
-    --radius: 0.75rem;
-
-    --sidebar-background: 220 18% 20%;
-    --sidebar-foreground: 220 15% 85%;
-    --sidebar-primary: 217 91% 60%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 15% 25%;
-    --sidebar-accent-foreground: 217 91% 60%;
-    --sidebar-border: 220 15% 25%;
-    --sidebar-ring: 217 91% 60%;
-
-    --chart-1: 217 91% 60%;
-    --chart-2: 142 76% 36%;
-    --chart-3: 0 72% 51%;
-    --chart-4: 38 92% 50%;
-    --chart-5: 188 94% 43%;
+    --radius: 1.25rem;
+    --nav-h: 4.25rem;
   }
 
   .dark {
-    --background: 220 20% 10%;
-    --foreground: 220 15% 90%;
+    --background: 30 8% 5.5%;
+    --foreground: 45 25% 93%;
+    --card: 30 6% 9.5%;
+    --card-foreground: 45 25% 93%;
+    --popover: 30 6% 11%;
+    --popover-foreground: 45 25% 93%;
+    --primary: 76 92% 62%;
+    --primary-foreground: 80 45% 8%;
+    --secondary: 30 5% 14%;
+    --secondary-foreground: 45 25% 93%;
+    --muted: 30 5% 13.5%;
+    --muted-foreground: 35 7% 58%;
+    --accent: 30 5% 14%;
+    --accent-foreground: 45 25% 93%;
+    --border: 30 5% 15.5%;
+    --input: 30 5% 19%;
+    --ring: 76 92% 62%;
 
-    --card: 220 18% 14%;
-    --card-foreground: 220 15% 90%;
-
-    --popover: 220 18% 14%;
-    --popover-foreground: 220 15% 90%;
-
-    --primary: 217 91% 60%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 220 15% 20%;
-    --secondary-foreground: 220 15% 90%;
-
-    --muted: 220 15% 20%;
-    --muted-foreground: 220 10% 60%;
-
-    --accent: 217 91% 60%;
-    --accent-foreground: 0 0% 100%;
-
-    --success: 142 76% 36%;
-    --success-foreground: 0 0% 100%;
-
-    --danger: 0 72% 51%;
+    --lime: 76 92% 62%;
+    --income: 76 92% 62%;
+    --success: 76 92% 62%;
+    --success-foreground: 80 45% 8%;
+    --danger: 6 90% 66%;
     --danger-foreground: 0 0% 100%;
-
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 100%;
-
-    --info: 188 94% 43%;
-    --info-foreground: 0 0% 100%;
-
-    --destructive: 0 72% 51%;
+    --destructive: 6 90% 66%;
     --destructive-foreground: 0 0% 100%;
+    --warning: 40 95% 60%;
+    --warning-foreground: 30 40% 8%;
+    --info: 205 85% 68%;
+    --info-foreground: 210 40% 8%;
 
-    --border: 220 15% 20%;
-    --input: 220 15% 20%;
-    --ring: 217 91% 60%;
+    --g-receita: 76 92% 62%;
+    --g-moradia: 205 85% 68%;
+    --g-alimentacao: 26 95% 64%;
+    --g-pets: 330 80% 74%;
+    --g-transporte: 258 85% 76%;
+    --g-saude: 166 65% 55%;
+    --g-lazer: 46 95% 62%;
+    --g-assinaturas: 286 70% 74%;
+    --g-educacao: 190 75% 60%;
+    --g-impostos: 6 90% 66%;
+    --g-outros: 35 7% 58%;
 
-    --sidebar-background: 220 18% 8%;
-    --sidebar-foreground: 220 15% 70%;
-    --sidebar-primary: 217 91% 60%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 15% 15%;
-    --sidebar-accent-foreground: 217 91% 60%;
-    --sidebar-border: 220 15% 15%;
-    --sidebar-ring: 217 91% 60%;
-
-    --chart-1: 217 91% 60%;
-    --chart-2: 142 76% 36%;
-    --chart-3: 0 72% 51%;
-    --chart-4: 38 92% 50%;
-    --chart-5: 188 94% 43%;
+    --chart-1: 205 85% 68%;
+    --chart-2: 26 95% 64%;
+    --chart-3: 330 80% 74%;
+    --chart-4: 258 85% 76%;
+    --chart-5: 166 65% 55%;
   }
 }
 
@@ -129,7 +130,79 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "ss01", "cv11";
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-display tracking-tight;
+  }
+
+  ::selection {
+    background: hsl(var(--lime) / 0.35);
+  }
+}
+
+@layer components {
+  /* Superfície padrão dos cards: sem sombra pesada, borda sutil, cantos generosos. */
+  .surface {
+    @apply rounded-[var(--radius)] border border-border bg-card;
+  }
+
+  /* O "cofre": card-assinatura, SEMPRE escuro (inclusive no tema claro). */
+  .vault {
+    @apply relative overflow-hidden rounded-[calc(var(--radius)+0.25rem)] text-[hsl(45_25%_93%)];
+    background:
+      radial-gradient(120% 90% at 100% 0%, hsl(var(--lime) / 0.16), transparent 55%),
+      radial-gradient(80% 60% at 0% 100%, hsl(205 85% 68% / 0.06), transparent 60%),
+      linear-gradient(160deg, hsl(30 7% 12%), hsl(30 8% 7%));
+    box-shadow:
+      inset 0 1px 0 hsl(0 0% 100% / 0.06),
+      0 20px 40px -24px hsl(0 0% 0% / 0.6);
+  }
+
+  .vault::after {
+    /* textura de "metal escovado" bem discreta */
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(115deg, hsl(0 0% 100% / 0.012) 0 2px, transparent 2px 6px);
+  }
+
+  .money {
+    @apply font-display tabular-nums tracking-tight;
+  }
+
+  .eyebrow {
+    @apply text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground;
+  }
+
+  /* Rolagem horizontal com "snap", sem barra visível (carrosséis de cards). */
+  .rail {
+    @apply flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain;
+    scrollbar-width: none;
+  }
+  .rail::-webkit-scrollbar {
+    display: none;
+  }
+  .rail > * {
+    @apply snap-start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
   }
 }

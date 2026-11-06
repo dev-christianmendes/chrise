@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { toast } from "sonner";
 import {
   addMonths,
   businessRevenueByMonth,
@@ -14,23 +14,19 @@ import {
   toCents,
 } from "@chrise/core";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { Slider } from "@/components/ui/slider";
-import { PageHeader } from "@/components/Layout";
+import { Money, PageTitle, Ring, SectionTitle } from "@/components/kit";
 import { ErrorState, PageSkeleton } from "@/components/states";
 import { useSaveTaxProfile, useSnapshot } from "@/hooks/use-finance";
-import { toast } from "sonner";
+import { monthName } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-function Row({ label, value, strong, tone }: { label: string; value: string; strong?: boolean; tone?: string }) {
-  return (
-    <div className="flex justify-between py-1.5 text-sm">
-      <span className={cn("text-muted-foreground", strong && "text-foreground font-medium")}>{label}</span>
-      <span className={cn("tabular-nums", strong && "font-semibold", tone)}>{value}</span>
-    </div>
-  );
-}
+const PART = {
+  das: { label: "DAS", color: "hsl(var(--g-impostos))" },
+  inss: { label: "INSS", color: "hsl(var(--warning))" },
+  extra: { label: "Reserva extra", color: "hsl(var(--g-outros))" },
+  free: { label: "Fica pra você", color: "hsl(var(--income))" },
+};
 
 export default function Taxes() {
   const { snapshot, isLoading, error } = useSnapshot();
@@ -46,16 +42,16 @@ export default function Taxes() {
     const actual = simplesForMonth(snapshot);
     const simulated = simplesForMonth({ ...snapshot, taxProfile: { ...snapshot.taxProfile, proLabore: simProLabore } });
 
-    // Histórico do DAS estimado nos últimos 12 meses fechados
+    // DAS + INSS estimados nos últimos 12 meses fechados.
     const months = lastMonths(addMonths(snapshot.month, -1), 12);
-    const all = businessRevenueByMonth(snapshot.transactions, lastMonths(addMonths(snapshot.month, -1), 24));
+    const revenue = businessRevenueByMonth(snapshot.transactions, lastMonths(addMonths(snapshot.month, -1), 24));
     const history = months.map((m, i) => {
       const r = calculateSimples({
-        monthRevenue: all[12 + i]!,
-        previousRevenues: all.slice(i, 12 + i).filter((v) => v > 0),
+        monthRevenue: revenue[12 + i]!,
+        previousRevenues: revenue.slice(i, 12 + i).filter((v) => v > 0),
         proLabore: snapshot.taxProfile.proLabore,
       });
-      return { label: monthLabel(m), das: r.das, inss: r.inss, anexo: r.anexo };
+      return { month: m, das: r.das, inss: r.inss, anexo: r.anexo };
     });
     return { actual, simulated, history };
   }, [snapshot, simProLabore]);
@@ -64,100 +60,182 @@ export default function Taxes() {
   if (isLoading || !model || !snapshot || simProLabore === null) return <PageSkeleton />;
 
   const { actual, simulated, history } = model;
+  const revenue = actual.netAfterTaxes + actual.totalReserve;
+  const parts = [
+    { key: "das", value: actual.das },
+    { key: "inss", value: actual.inss },
+    { key: "extra", value: actual.extraReserve },
+    { key: "free", value: Math.max(0, actual.netAfterTaxes) },
+  ] as const;
+
   const totalActual = actual.das + actual.inss;
   const totalSim = simulated.das + simulated.inss;
   const diff = totalActual - totalSim;
   const max = Math.max(toCents(15_000), actual.minProLaboreForAnexoIII * 1.5);
   const changed = simProLabore !== snapshot.taxProfile.proLabore;
+  const peak = Math.max(1, ...history.map((h) => h.das + h.inss));
+  const avg = history.reduce((a, h) => a + h.das + h.inss, 0) / history.length;
 
   return (
-    <div className="space-y-6">
-      <PageHeader title="Impostos PJ" subtitle={`Simples Nacional · apuração de ${monthLabel(snapshot.month)}`} />
+    <div className="mx-auto max-w-5xl">
+      <PageTitle eyebrow={`Simples Nacional · ${monthName(snapshot.month)}`} title="Impostos" />
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card className="p-4 md:p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold">Quanto separar este mês</h2>
-            <span className={cn("rounded-md px-2 py-1 text-xs font-semibold", actual.anexo === "III" ? "bg-success/10 text-success" : "bg-danger/10 text-danger")}>
-              Anexo {actual.anexo}
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:gap-6">
+        {/* Quanto separar: o faturamento "fatiado" */}
+        <section className="surface p-5 md:p-6 animate-rise">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-sm text-muted-foreground">Separe este mês</p>
+              <Money value={actual.totalReserve} className="mt-1 block text-[2.6rem] font-semibold leading-none" />
+              <p className="mt-2 text-sm text-muted-foreground">
+                de <Money value={revenue} className="font-semibold text-foreground" /> faturados · DAS vence dia 20
+              </p>
+            </div>
+            <span
+              className={cn(
+                "shrink-0 rounded-full px-2.5 py-1 text-xs font-bold",
+                actual.anexo === "III" ? "bg-income/15 text-income" : "bg-danger/15 text-danger",
+              )}
+            >
+              ANEXO {actual.anexo}
             </span>
           </div>
-          <Row label="Faturamento do mês" value={formatBRL(actual.netAfterTaxes + actual.totalReserve)} />
-          <Row label="RBT12 (12 meses anteriores)" value={formatBRL(actual.rbt12)} />
-          <Row label="Alíquota efetiva" value={formatPercent(actual.effectiveRate, 2)} />
-          <div className="my-2 border-t border-border" />
-          <Row label="DAS (vence dia 20)" value={formatBRL(actual.das)} tone="text-danger" />
-          <Row label="INSS sobre pró-labore" value={formatBRL(actual.inss)} tone="text-danger" />
-          <Row label={`Reserva extra (${formatPercent(snapshot.taxProfile.extraReserveRate, 0)})`} value={formatBRL(actual.extraReserve)} />
-          <div className="my-2 border-t border-border" />
-          <Row label="Total a separar" value={formatBRL(actual.totalReserve)} strong tone="text-danger" />
-          <Row label="Livre para a pessoa física" value={formatBRL(actual.netAfterTaxes)} strong tone="text-success" />
-        </Card>
 
-        <Card className="p-4 md:p-6">
-          <h2 className="font-semibold mb-1">Fator R</h2>
-          <p className="text-sm text-muted-foreground mb-4">
-            Folha ÷ faturamento dos últimos 12 meses. A partir de {formatPercent(FATOR_R_THRESHOLD, 0)} a PJ de TI paga pelo Anexo III, bem mais barato que o V.
-          </p>
-          <div className="flex items-baseline justify-between mb-2">
-            <span className="text-3xl font-bold tabular-nums">{formatPercent(actual.fatorR)}</span>
-            <span className="text-xs text-muted-foreground">meta {formatPercent(FATOR_R_THRESHOLD, 0)}</span>
+          <div className="mt-6 flex h-4 gap-[3px] overflow-hidden rounded-full" role="img" aria-label="Divisão do faturamento">
+            {parts.map((p) =>
+              p.value > 0 ? <div key={p.key} style={{ flexGrow: p.value, background: PART[p.key].color }} className="min-w-[4px] first:rounded-l-full last:rounded-r-full" /> : null,
+            )}
           </div>
-          <Progress value={Math.min(100, (actual.fatorR / FATOR_R_THRESHOLD) * 100)} />
 
-          <div className="mt-6 space-y-3">
-            <div className="flex justify-between text-sm">
-              <span>Simular pró-labore</span>
-              <span className="font-semibold tabular-nums">{formatBRL(simProLabore)}</span>
+          <dl className="mt-5 space-y-3">
+            {parts.map((p) => (
+              <div key={p.key} className="flex items-center gap-3 text-sm">
+                <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: PART[p.key].color }} />
+                <dt className="flex-1 text-muted-foreground">
+                  {p.key === "extra" ? `${PART.extra.label} (${formatPercent(snapshot.taxProfile.extraReserveRate, 0)})` : PART[p.key].label}
+                </dt>
+                <dd>
+                  <Money value={p.value} className={cn("font-semibold", p.key === "free" && "text-income")} />
+                </dd>
+              </div>
+            ))}
+          </dl>
+
+          <p className="mt-5 border-t border-border pt-4 text-xs text-muted-foreground">
+            RBT12 {formatBRL(actual.rbt12)} · alíquota efetiva {formatPercent(actual.effectiveRate, 2)}
+          </p>
+        </section>
+
+        {/* Fator R */}
+        <section className="surface p-5 md:p-6 animate-rise [animation-delay:80ms]">
+          <div className="flex items-center gap-5">
+            <Ring
+              value={actual.fatorR / FATOR_R_THRESHOLD}
+              size={112}
+              stroke={10}
+              color={actual.fatorR >= FATOR_R_THRESHOLD ? "hsl(var(--income))" : "hsl(var(--warning))"}
+            >
+              <span className="text-center leading-tight">
+                <span className="money block text-2xl font-semibold">{formatPercent(actual.fatorR)}</span>
+                <span className="text-[10px] text-muted-foreground">meta {formatPercent(FATOR_R_THRESHOLD, 0)}</span>
+              </span>
+            </Ring>
+            <div className="min-w-0">
+              <h2 className="text-xl font-semibold">Fator R</h2>
+              <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                Folha ÷ faturamento de 12 meses. Com {formatPercent(FATOR_R_THRESHOLD, 0)} ou mais, TI paga pelo Anexo III, bem mais barato.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6 space-y-4">
+            <div className="flex items-baseline justify-between">
+              <span className="text-sm">Simular pró-labore</span>
+              <Money value={simProLabore} className="text-xl font-semibold" />
             </div>
             <Slider value={[simProLabore]} min={toCents(1_518)} max={max} step={5_000} onValueChange={([v]) => setSimProLabore(v!)} aria-label="Pró-labore simulado" />
             <div className="flex flex-wrap gap-2">
               <Button size="sm" variant="outline" onClick={() => setSimProLabore(actual.minProLaboreForAnexoIII)}>
-                Mínimo p/ Anexo III ({formatBRLCompact(actual.minProLaboreForAnexoIII)})
+                Mínimo p/ Anexo III · {formatBRLCompact(actual.minProLaboreForAnexoIII)}
               </Button>
               {changed && (
-                <Button
-                  size="sm"
-                  onClick={async () => {
-                    await save.mutateAsync({ ...snapshot.taxProfile, proLabore: simProLabore });
-                    toast.success("Pró-labore atualizado");
-                  }}
-                >
-                  Salvar como meu pró-labore
+                <Button size="sm" variant="ghost" onClick={() => setSimProLabore(snapshot.taxProfile.proLabore)}>
+                  Voltar ao atual
                 </Button>
               )}
             </div>
-            <div className="rounded-lg bg-muted p-3 text-sm">
-              Com esse pró-labore: <strong>Anexo {simulated.anexo}</strong>, DAS {formatBRL(simulated.das)} + INSS {formatBRL(simulated.inss)} ={" "}
-              <strong>{formatBRL(totalSim)}</strong>.{" "}
-              {diff > 0 ? (
-                <span className="text-success">Economia de {formatBRL(diff)}/mês.</span>
-              ) : diff < 0 ? (
-                <span className="text-danger">Custa {formatBRL(-diff)}/mês a mais.</span>
-              ) : null}
+
+            <div className="grid grid-cols-2 gap-2">
+              <div className="rounded-2xl bg-muted p-3.5">
+                <p className="text-xs text-muted-foreground">Hoje · Anexo {actual.anexo}</p>
+                <Money value={totalActual} className="mt-1 block text-lg font-semibold" />
+                <p className="text-[11px] text-muted-foreground">DAS + INSS</p>
+              </div>
+              <div className={cn("rounded-2xl p-3.5", diff > 0 ? "bg-income/12 ring-1 ring-income/30" : "bg-muted")}>
+                <p className="text-xs text-muted-foreground">Simulado · Anexo {simulated.anexo}</p>
+                <Money value={totalSim} className="mt-1 block text-lg font-semibold" />
+                <p className={cn("text-[11px] font-semibold", diff > 0 ? "text-income" : diff < 0 ? "text-danger" : "text-muted-foreground")}>
+                  {diff > 0 ? `economia de ${formatBRL(diff)}/mês` : diff < 0 ? `custa ${formatBRL(-diff)}/mês a mais` : "igual ao atual"}
+                </p>
+              </div>
             </div>
+
+            {changed && (
+              <Button
+                className="w-full"
+                disabled={save.isPending}
+                onClick={async () => {
+                  await save.mutateAsync({ ...snapshot.taxProfile, proLabore: simProLabore });
+                  toast.success("Pró-labore atualizado");
+                }}
+              >
+                Salvar como meu pró-labore
+              </Button>
+            )}
           </div>
-        </Card>
+        </section>
       </div>
 
-      <Card className="p-4 md:p-6">
-        <h2 className="font-semibold mb-4">DAS + INSS estimados (12 meses)</h2>
-        <ResponsiveContainer width="100%" height={240}>
-          <BarChart data={history} margin={{ left: 0, right: 8 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-            <XAxis dataKey="label" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} />
-            <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} tickFormatter={(v) => formatBRLCompact(v)} width={84} />
-            <Tooltip
-              contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "var(--radius)" }}
-              formatter={(v: number) => formatBRL(v)}
-            />
-            <Bar dataKey="das" name="DAS" stackId="t" fill="hsl(var(--danger))" />
-            <Bar dataKey="inss" name="INSS" stackId="t" fill="hsl(var(--warning))" radius={[4, 4, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
-      </Card>
+      {/* Histórico: barras em HTML, sem biblioteca de gráfico */}
+      <section className="mt-8 animate-rise [animation-delay:140ms]">
+        <SectionTitle title="Últimos 12 meses" />
+        <div className="surface p-5">
+          <div className="flex items-baseline justify-between text-sm text-muted-foreground">
+            <span>média mensal</span>
+            <Money value={Math.round(avg)} className="text-lg font-semibold text-foreground" />
+          </div>
+          <div className="mt-5 flex h-40 items-end gap-1.5 sm:gap-2.5" role="img" aria-label="DAS e INSS por mês">
+            {history.map((h) => {
+              const total = h.das + h.inss;
+              return (
+                <div key={h.month} className="group flex h-full flex-1 flex-col items-center justify-end gap-1.5" title={`${monthLabel(h.month)}: DAS ${formatBRL(h.das)} + INSS ${formatBRL(h.inss)}`}>
+                  <div className="flex w-full max-w-[2.25rem] flex-col justify-end overflow-hidden rounded-[0.6rem]" style={{ height: `${(total / peak) * 100}%` }}>
+                    <div style={{ flexGrow: h.inss, background: PART.inss.color }} className="min-h-[3px] opacity-90" />
+                    <div style={{ flexGrow: h.das, background: PART.das.color }} className="mt-[2px] opacity-90 transition-opacity group-hover:opacity-100" />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="mt-2 flex gap-1.5 sm:gap-2.5">
+            {history.map((h, i) => (
+              <span key={h.month} className="flex-1 text-center text-[10px] text-muted-foreground">
+                {i % 2 === 0 || history.length <= 6 ? monthLabel(h.month).slice(0, 3) : ""}
+              </span>
+            ))}
+          </div>
+          <div className="mt-4 flex gap-4 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full" style={{ background: PART.das.color }} /> DAS
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full" style={{ background: PART.inss.color }} /> INSS
+            </span>
+          </div>
+        </div>
+      </section>
 
-      <p className="text-xs text-muted-foreground">
+      <p className="mt-6 px-1 text-xs leading-relaxed text-muted-foreground">
         Cálculo pelas tabelas da LC 123/2006 (redação da LC 155/2016) e parâmetros de INSS versionados em <code>packages/core</code>. É uma estimativa: confirme com seu contador.
       </p>
     </div>

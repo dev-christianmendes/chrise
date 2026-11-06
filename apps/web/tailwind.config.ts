@@ -14,7 +14,26 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ["'Manrope Variable'", "system-ui", "sans-serif"],
+        display: ["'Space Grotesk Variable'", "'Manrope Variable'", "system-ui", "sans-serif"],
+      },
       colors: {
+        lime: "hsl(var(--lime))",
+        income: "hsl(var(--income))",
+        group: {
+          receita: "hsl(var(--g-receita))",
+          moradia: "hsl(var(--g-moradia))",
+          alimentacao: "hsl(var(--g-alimentacao))",
+          pets: "hsl(var(--g-pets))",
+          transporte: "hsl(var(--g-transporte))",
+          saude: "hsl(var(--g-saude))",
+          lazer: "hsl(var(--g-lazer))",
+          assinaturas: "hsl(var(--g-assinaturas))",
+          educacao: "hsl(var(--g-educacao))",
+          impostos: "hsl(var(--g-impostos))",
+          outros: "hsl(var(--g-outros))",
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -83,11 +102,16 @@ export default {
         },
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        xl: "var(--radius)",
+        lg: "calc(var(--radius) - 0.375rem)",
+        md: "calc(var(--radius) - 0.625rem)",
+        sm: "calc(var(--radius) - 0.875rem)",
       },
       keyframes: {
+        rise: {
+          from: { opacity: "0", transform: "translateY(8px)" },
+          to: { opacity: "1", transform: "none" },
+        },
         "accordion-down": {
           from: {
             height: "0",
@@ -108,6 +132,7 @@ export default {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        rise: "rise 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both",
       },
     },
   },

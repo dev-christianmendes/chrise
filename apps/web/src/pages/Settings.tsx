@@ -1,22 +1,50 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { Download, LogOut, RotateCcw } from "lucide-react";
+import { ChevronRight, Database, Download, FileUp, Landmark, LogOut, Moon, Percent, RotateCcw, Target } from "lucide-react";
 import { formatBRL } from "@chrise/core";
 import { MockRepository } from "@chrise/data";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { PageHeader } from "@/components/Layout";
+import { Switch } from "@/components/ui/switch";
+import { PageTitle } from "@/components/kit";
 import { useSaveTaxProfile, useTaxProfile } from "@/hooks/use-finance";
+import { useSheetParam, useTheme } from "@/hooks/use-ui";
 import { DATA_SOURCE, IS_DEMO, repository } from "@/lib/repository";
 import { getSupabase } from "@/lib/supabase";
-import { toast } from "sonner";
+
+function Group({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section>
+      <h2 className="eyebrow mb-2 px-1">{title}</h2>
+      <div className="surface divide-y divide-border overflow-hidden">{children}</div>
+    </section>
+  );
+}
+
+function Row({ icon: Icon, title, hint, children }: { icon: typeof Moon; title: string; hint?: ReactNode; children?: ReactNode }) {
+  return (
+    <div className="flex min-h-[3.75rem] items-center gap-3 px-4 py-3">
+      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-muted text-muted-foreground">
+        <Icon className="h-[1.1rem] w-[1.1rem]" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-[0.95rem] font-medium">{title}</span>
+        {hint && <span className="block text-xs text-muted-foreground">{hint}</span>}
+      </span>
+      {children}
+    </div>
+  );
+}
+
+const rowLink = "flex min-h-[3.75rem] items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/40";
 
 export default function Settings() {
   const qc = useQueryClient();
   const { data: profile } = useTaxProfile();
   const save = useSaveTaxProfile();
+  const [theme, toggleTheme] = useTheme();
+  const [, setImportOpen] = useSheetParam("import");
   const [reserve, setReserve] = useState("");
 
   useEffect(() => {
@@ -38,63 +66,113 @@ export default function Settings() {
     URL.revokeObjectURL(a.href);
   };
 
+  const saveReserve = async () => {
+    if (!profile) return;
+    const pct = Math.min(30, Math.max(0, Number(reserve) || 0));
+    if (pct / 100 === profile.extraReserveRate) return;
+    await save.mutateAsync({ ...profile, extraReserveRate: pct / 100 });
+    toast.success("Reserva atualizada");
+  };
+
   return (
-    <div className="space-y-6 max-w-2xl">
-      <PageHeader title="Ajustes" />
+    <div className="mx-auto max-w-2xl">
+      <PageTitle eyebrow="Preferências" title="Ajustes" />
 
-      <Card className="p-4 md:p-6 space-y-4">
-        <h2 className="font-semibold">Perfil fiscal</h2>
-        <p className="text-sm text-muted-foreground">
-          Simples Nacional · TI com Fator R · pró-labore atual {profile ? formatBRL(profile.proLabore) : "…"} (ajuste na aba Impostos).
-        </p>
-        <form
-          className="flex items-end gap-2"
-          onSubmit={async (e) => {
-            e.preventDefault();
-            if (!profile) return;
-            const pct = Math.min(30, Math.max(0, Number(reserve) || 0));
-            await save.mutateAsync({ ...profile, extraReserveRate: pct / 100 });
-            toast.success("Reserva atualizada");
-          }}
-        >
-          <div className="space-y-1.5 flex-1">
-            <Label htmlFor="reserve">Reserva extra sobre o faturamento (%)</Label>
-            <Input id="reserve" type="number" min={0} max={30} value={reserve} onChange={(e) => setReserve(e.target.value)} />
-          </div>
-          <Button type="submit" disabled={save.isPending}>Salvar</Button>
-        </form>
-      </Card>
+      <div className="space-y-7">
+        <Group title="Aparência">
+          <Row icon={Moon} title="Tema escuro" hint="O cofre fica escuro nos dois temas.">
+            <Switch checked={theme === "dark"} onCheckedChange={toggleTheme} aria-label="Tema escuro" />
+          </Row>
+        </Group>
 
-      <Card className="p-4 md:p-6 space-y-3">
-        <h2 className="font-semibold">Dados</h2>
-        <p className="text-sm text-muted-foreground">
-          Fonte: <code>{DATA_SOURCE}</code>
-          {IS_DEMO && ". Dados fictícios gerados no navegador; suas edições ficam só neste dispositivo."}
-        </p>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" className="gap-2" onClick={exportData}>
-            <Download className="w-4 h-4" /> Exportar backup (JSON)
+        <Group title="Impostos PJ">
+          <Link to="/taxes" className={rowLink}>
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-muted text-muted-foreground">
+              <Landmark className="h-[1.1rem] w-[1.1rem]" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[0.95rem] font-medium">Pró-labore</span>
+              <span className="block text-xs text-muted-foreground">
+                {profile ? formatBRL(profile.proLabore) : "…"} · simule em Impostos
+              </span>
+            </span>
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+          </Link>
+          <Row icon={Percent} title="Reserva extra" hint="Sobre o faturamento: contador, imprevistos.">
+            <span className="flex items-center gap-1 rounded-full bg-muted px-3 py-1.5">
+              <input
+                type="number"
+                inputMode="numeric"
+                min={0}
+                max={30}
+                aria-label="Reserva extra em porcentagem"
+                value={reserve}
+                onChange={(e) => setReserve(e.target.value)}
+                onBlur={saveReserve}
+                onKeyDown={(e) => e.key === "Enter" && (e.currentTarget as HTMLInputElement).blur()}
+                className="money w-8 bg-transparent text-right font-semibold outline-none"
+              />
+              <span className="text-sm text-muted-foreground">%</span>
+            </span>
+          </Row>
+          <Link to="/budgets" className={rowLink}>
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-muted text-muted-foreground">
+              <Target className="h-[1.1rem] w-[1.1rem]" />
+            </span>
+            <span className="min-w-0 flex-1 text-[0.95rem] font-medium">Limites por categoria</span>
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+          </Link>
+        </Group>
+
+        <Group title="Dados">
+          <Row
+            icon={Database}
+            title="Fonte dos dados"
+            hint={IS_DEMO ? "Demonstração: dados fictícios, suas edições ficam só neste aparelho." : "Sua conta, protegida por RLS no banco."}
+          >
+            <code className="rounded-full bg-muted px-2.5 py-1 text-xs">{DATA_SOURCE}</code>
+          </Row>
+          <button type="button" onClick={() => setImportOpen(true)} className={`${rowLink} w-full text-left`}>
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-muted text-muted-foreground">
+              <FileUp className="h-[1.1rem] w-[1.1rem]" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[0.95rem] font-medium">Importar extrato</span>
+              <span className="block text-xs text-muted-foreground">OFX ou CSV do banco</span>
+            </span>
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+          </button>
+          <button type="button" onClick={exportData} className={`${rowLink} w-full text-left`}>
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-muted text-muted-foreground">
+              <Download className="h-[1.1rem] w-[1.1rem]" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[0.95rem] font-medium">Exportar backup</span>
+              <span className="block text-xs text-muted-foreground">Arquivo JSON com tudo</span>
+            </span>
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+          </button>
+        </Group>
+
+        {IS_DEMO && repository instanceof MockRepository && (
+          <Button
+            variant="outline"
+            className="w-full gap-2"
+            onClick={() => {
+              (repository as MockRepository).reset();
+              qc.invalidateQueries();
+              toast.success("Demo restaurada");
+            }}
+          >
+            <RotateCcw className="h-4 w-4" /> Restaurar demo
           </Button>
-          {IS_DEMO && repository instanceof MockRepository && (
-            <Button
-              variant="outline"
-              className="gap-2"
-              onClick={() => {
-                (repository as MockRepository).reset();
-                qc.invalidateQueries();
-                toast.success("Demo restaurada");
-              }}
-            >
-              <RotateCcw className="w-4 h-4" /> Restaurar demo
-            </Button>
-          )}
-          {!IS_DEMO && (
-            <Button variant="outline" className="gap-2" onClick={async () => (await getSupabase()).auth.signOut()}>
-              <LogOut className="w-4 h-4" /> Sair
-            </Button>
-          )}
-        </div>
-      </Card>
+        )}
+        {!IS_DEMO && (
+          <Button variant="outline" className="w-full gap-2 text-danger hover:text-danger" onClick={async () => (await getSupabase()).auth.signOut()}>
+            <LogOut className="h-4 w-4" /> Sair
+          </Button>
+        )}
+      </div>
     </div>
   );
 }

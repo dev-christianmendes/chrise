@@ -1,138 +1,161 @@
-import { useEffect, useState, type ReactNode } from "react";
-import { Link, NavLink, Outlet } from "react-router-dom";
-import { ArrowUpDown, Landmark, LayoutDashboard, LineChart, Moon, Settings, Sun, Target } from "lucide-react";
+import { useEffect } from "react";
+import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
+import { ArrowLeftRight, Home, Landmark, Moon, Plus, Settings, Sparkles, Sun, Target, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useSheetParam, useTheme } from "@/hooks/use-ui";
 import { IS_DEMO } from "@/lib/repository";
 import { cn } from "@/lib/utils";
+import { ImportDialog } from "./ImportDialog";
 import { Logo } from "./Logo";
+import { TransactionForm } from "./TransactionForm";
 
-const navigation = [
-  { name: "Início", href: "/", icon: LayoutDashboard },
-  { name: "Lançamentos", href: "/transactions", icon: ArrowUpDown },
-  { name: "Previsões", href: "/forecast", icon: LineChart },
+interface NavItem {
+  name: string;
+  href: string;
+  icon: LucideIcon;
+}
+
+const navigation: NavItem[] = [
+  { name: "Início", href: "/", icon: Home },
+  { name: "Extrato", href: "/transactions", icon: ArrowLeftRight },
   { name: "Impostos", href: "/taxes", icon: Landmark },
-  { name: "Orçamentos", href: "/budgets", icon: Target },
+  { name: "Futuro", href: "/forecast", icon: Sparkles },
+  { name: "Limites", href: "/budgets", icon: Target },
   { name: "Ajustes", href: "/settings", icon: Settings },
 ];
 
-/** Na barra inferior do celular cabem 5 itens; "Ajustes" fica no header. */
-const mobileNav = navigation.slice(0, 5);
-
-type Theme = "light" | "dark";
-
-function readTheme(): Theme {
-  try {
-    const saved = localStorage.getItem("theme");
-    if (saved === "light" || saved === "dark") return saved;
-  } catch {
-    /* storage bloqueado */
-  }
-  return window.matchMedia?.("(prefers-color-scheme: light)").matches ? "light" : "dark";
-}
-
-function useTheme() {
-  const [theme, setTheme] = useState<Theme>(readTheme);
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", theme === "dark");
-    try {
-      localStorage.setItem("theme", theme);
-    } catch {
-      /* ok */
-    }
-  }, [theme]);
-  return [theme, () => setTheme((t) => (t === "dark" ? "light" : "dark"))] as const;
-}
-
-const linkClass = ({ isActive }: { isActive: boolean }) =>
-  cn(
-    "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors",
-    isActive
-      ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-      : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
-  );
+/** Dock do celular: 4 destinos + o botão de lançar no meio, onde o polegar alcança. */
+const dock = [navigation[0]!, navigation[1]!, null, navigation[2]!, navigation[3]!] as const;
 
 export function Layout() {
   const [theme, toggleTheme] = useTheme();
+  const [formOpen, setFormOpen] = useSheetParam("new");
+  const [importOpen, setImportOpen] = useSheetParam("import");
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, [pathname]);
 
   return (
     <div className="flex min-h-dvh bg-background">
-      {/* Sidebar (desktop) */}
-      <aside className="hidden md:flex w-60 shrink-0 bg-sidebar border-r border-sidebar-border flex-col sticky top-0 h-dvh">
-        <Link to="/" className="p-5 border-b border-sidebar-border text-sidebar-foreground">
+      {/* Sidebar (tablet/desktop) */}
+      <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col gap-6 border-r border-border px-4 py-6 md:flex">
+        <Link to="/" className="px-2">
           <Logo />
         </Link>
-        <nav className="flex-1 p-3 space-y-1">
+
+        <Button size="lg" className="w-full justify-start gap-3 px-5" onClick={() => setFormOpen(true)}>
+          <Plus className="!h-5 !w-5" strokeWidth={2.6} /> Lançar
+        </Button>
+
+        <nav className="flex-1 space-y-1">
           {navigation.map(({ name, href, icon: Icon }) => (
-            <NavLink key={href} to={href} end={href === "/"} className={linkClass}>
-              <Icon className="w-5 h-5" />
-              <span>{name}</span>
+            <NavLink
+              key={href}
+              to={href}
+              end={href === "/"}
+              className={({ isActive }) =>
+                cn(
+                  "group flex items-center gap-3 rounded-full px-4 py-2.5 text-[0.95rem] font-medium transition-colors",
+                  isActive ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+                )
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  <Icon className={cn("h-5 w-5", isActive && "text-income")} strokeWidth={isActive ? 2.4 : 2} />
+                  {name}
+                </>
+              )}
             </NavLink>
           ))}
         </nav>
-        {IS_DEMO && (
-          <p className="m-3 rounded-lg bg-warning/10 p-3 text-xs text-warning">
-            Modo demonstração: dados fictícios, salvos só no seu navegador.
-          </p>
-        )}
+
+        <div className="space-y-3">
+          {IS_DEMO && (
+            <p className="rounded-2xl border border-dashed border-border p-3 text-xs leading-relaxed text-muted-foreground">
+              <span className="font-semibold text-foreground">Modo demonstração.</span> Dados fictícios; o que você lançar fica só neste navegador.
+            </p>
+          )}
+          <Button variant="ghost" className="w-full justify-start gap-3 px-4 text-muted-foreground" onClick={toggleTheme}>
+            {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            {theme === "dark" ? "Tema claro" : "Tema escuro"}
+          </Button>
+        </div>
       </aside>
 
-      <div className="flex-1 min-w-0 flex flex-col">
-        <header className="sticky top-0 z-20 h-14 border-b border-border bg-card/90 backdrop-blur flex items-center justify-between px-4 md:px-6 pt-[env(safe-area-inset-top)]">
-          <Link to="/" className="md:hidden">
+      <div className="flex min-w-0 flex-1 flex-col">
+        {/* Topo (celular): leve, sem borda; só marca e atalhos */}
+        <header className="sticky top-0 z-20 flex items-center justify-between bg-background/80 px-4 pb-2 pt-[calc(0.5rem+env(safe-area-inset-top))] backdrop-blur-xl md:hidden">
+          <Link to="/" aria-label="Início">
             <Logo compact />
           </Link>
-          <div className="flex items-center gap-1 ml-auto">
-            {IS_DEMO && <span className="md:hidden rounded-md bg-warning/10 px-2 py-1 text-[11px] text-warning">demo</span>}
-            <Button variant="ghost" size="icon" asChild className="md:hidden">
-              <Link to="/settings" aria-label="Ajustes">
-                <Settings className="w-5 h-5" />
-              </Link>
+          <div className="flex items-center gap-1">
+            {IS_DEMO && (
+              <span className="mr-1 rounded-full border border-dashed border-border px-2.5 py-1 text-[11px] font-medium text-muted-foreground">demo</span>
+            )}
+            <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label={theme === "dark" ? "Usar tema claro" : "Usar tema escuro"}>
+              {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </Button>
-            <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Alternar tema">
-              {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            <Button variant="ghost" size="icon" asChild>
+              <Link to="/settings" aria-label="Ajustes">
+                <Settings className="h-5 w-5" />
+              </Link>
             </Button>
           </div>
         </header>
 
-        <main className="flex-1 p-4 md:p-6 pb-24 md:pb-6 max-w-7xl w-full mx-auto">
+        <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-[calc(var(--nav-h)+2.5rem+env(safe-area-inset-bottom))] pt-2 md:px-8 md:pb-10 md:pt-8">
           <Outlet />
         </main>
       </div>
 
-      {/* Bottom nav (mobile) */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 border-t border-border bg-card/95 backdrop-blur pb-[env(safe-area-inset-bottom)]">
-        <ul className="grid grid-cols-5">
-          {mobileNav.map(({ name, href, icon: Icon }) => (
-            <li key={href}>
-              <NavLink
-                to={href}
-                end={href === "/"}
-                className={({ isActive }) =>
-                  cn(
-                    "flex flex-col items-center gap-1 py-2 text-[11px] min-h-14 justify-center",
-                    isActive ? "text-primary" : "text-muted-foreground",
-                  )
-                }
-              >
-                <Icon className="w-5 h-5" />
-                {name}
-              </NavLink>
-            </li>
-          ))}
+      {/* Dock (celular) */}
+      <nav
+        aria-label="Navegação principal"
+        className="fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-30 md:hidden"
+      >
+        <ul className="grid h-[var(--nav-h)] grid-cols-5 items-center rounded-[1.75rem] border border-border bg-card/85 px-1 shadow-[0_12px_40px_-12px_rgb(0_0_0/0.45)] backdrop-blur-xl">
+          {dock.map((item) =>
+            item ? (
+              <li key={item.href}>
+                <NavLink
+                  to={item.href}
+                  end={item.href === "/"}
+                  className={({ isActive }) =>
+                    cn(
+                      "flex flex-col items-center gap-1 py-2 text-[11px] font-semibold transition-colors",
+                      isActive ? "text-foreground" : "text-muted-foreground",
+                    )
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      <item.icon className={cn("h-[1.35rem] w-[1.35rem]", isActive && "text-income")} strokeWidth={isActive ? 2.4 : 2} />
+                      {item.name}
+                    </>
+                  )}
+                </NavLink>
+              </li>
+            ) : (
+              <li key="add" className="flex justify-center">
+                <button
+                  type="button"
+                  onClick={() => setFormOpen(true)}
+                  aria-label="Novo lançamento"
+                  className="-mt-7 grid h-[3.75rem] w-[3.75rem] place-items-center rounded-[1.35rem] bg-lime text-[hsl(80_45%_8%)] shadow-[0_10px_28px_-6px_hsl(var(--lime)/0.55)] ring-4 ring-background transition-transform active:scale-95"
+                >
+                  <Plus className="h-7 w-7" strokeWidth={2.8} />
+                </button>
+              </li>
+            ),
+          )}
         </ul>
       </nav>
-    </div>
-  );
-}
 
-export function PageHeader({ title, subtitle, action }: { title: string; subtitle?: string; action?: ReactNode }) {
-  return (
-    <div className="flex items-start justify-between gap-4 mb-6">
-      <div>
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{title}</h1>
-        {subtitle && <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>}
-      </div>
-      {action}
+      <TransactionForm open={formOpen} onOpenChange={setFormOpen} />
+      <ImportDialog open={importOpen} onOpenChange={setImportOpen} />
     </div>
   );
 }
