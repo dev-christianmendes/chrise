@@ -39,8 +39,8 @@ export function businessRevenueByMonth(transactions: readonly Transaction[], mon
   );
 }
 
-export function simplesForMonth(snapshot: FinanceSnapshot): SimplesResult {
-  const { month, transactions, taxProfile } = snapshot;
+export function simplesForMonth(snapshot: FinanceSnapshot, month: YearMonth = snapshot.month): SimplesResult {
+  const { transactions, taxProfile } = snapshot;
   const [current = 0] = businessRevenueByMonth(transactions, [month]);
   const history = businessRevenueByMonth(transactions, lastMonths(addMonths(month, -1), 12));
   // Descarta meses zerados ANTES do primeiro faturamento (início de atividade).

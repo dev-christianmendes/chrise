@@ -13,6 +13,7 @@ import Dashboard from "./pages/Dashboard";
 const Transactions = lazy(() => import("./pages/Transactions"));
 const Forecast = lazy(() => import("./pages/Forecast"));
 const Taxes = lazy(() => import("./pages/Taxes"));
+const Calendar = lazy(() => import("./pages/Calendar"));
 const Budgets = lazy(() => import("./pages/Budgets"));
 const Settings = lazy(() => import("./pages/Settings"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -46,6 +47,7 @@ export default function App() {
                   <Route path="transactions" element={<Transactions />} />
                   <Route path="forecast" element={<Forecast />} />
                   <Route path="taxes" element={<Taxes />} />
+                  <Route path="calendar" element={<Calendar />} />
                   <Route path="budgets" element={<Budgets />} />
                   <Route path="settings" element={<Settings />} />
                   <Route path="*" element={<NotFound />} />

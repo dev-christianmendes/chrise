@@ -39,6 +39,7 @@ A demo pública roda **100% no navegador**, com 24 meses de dados fictícios de 
 | **Lançamentos** | Lista agrupada por mês, busca e filtros, lançamento rápido com botão flutuante (atalho do PWA: "Novo lançamento"), importação de extrato OFX/CSV com categorização automática e detecção de duplicados |
 | **Previsões** | Saldo projetado em 12 meses com faixa de 80%, previsão por categoria com tendência, simulador de juros compostos e meta |
 | **Impostos PJ** | DAS do mês, RBT12, alíquota efetiva, Fator R, simulador de pró-labore (Anexo III × V) e histórico |
+| **Calendário fiscal** | DAS, DEFIS e IRPF nos próximos 12 meses, atrasados recentes e valor estimado do DAS, com datas de referência e aviso para conferir o calendário oficial |
 | **Orçamentos** | Limites por categoria com alerta em 80% e 100% |
 | **Ajustes** | Reserva extra sobre o faturamento, backup em JSON |
 
@@ -111,6 +112,16 @@ supabase functions deploy explain
 
 As tabelas são dados versionados (LC 123/2006 com redação da LC 155/2016). Os parâmetros do INSS mudam todo ano e ficam em `INSS_PARAMS`. **É uma estimativa: confirme com seu contador.**
 
+## Calendário fiscal
+
+`buildFiscalCalendar` em [`packages/core/src/fiscal-calendar.ts`](packages/core/src/fiscal-calendar.ts) junta os próximos 12 meses de obrigações, sempre com datas de referência:
+
+- **DAS**: dia 20 do mês seguinte à competência, com o valor estimado pelo `core` quando há faturamento.
+- **DEFIS**: 31/03 do ano seguinte ao ano-base.
+- **IRPF**: 30/04 do ano seguinte ao exercício.
+
+A janela mostra também os últimos 30 dias, para o que venceu há pouco não desaparecer. Feriados, prorrogações e mudanças de calendário **não** são calculados: o app avisa que a data oficial deve ser confirmada no portal.
+
 ## Rodando localmente
 
 Requisitos: Node 22 ou mais recente.
@@ -127,9 +138,9 @@ npm run build:demo   # build estático da demo (GitHub Pages)
 
 | Comando | O que cobre |
 |---|---|
-| `npm test` | 194 testes: regras do `core`, adapters (mock, Supabase e outbox offline), Edge Function (validação e guarda numérica) e UI com Testing Library |
+| `npm test` | 203 testes: regras do `core`, adapters (mock, Supabase e outbox offline), Edge Function (validação e guarda numérica) e UI com Testing Library |
 | `npm run test:coverage` | Cobertura com gate no CI (≥ 80% de linhas/instruções, ≥ 85% de branches, ≥ 70% de funções) |
-| `npm run test:e2e` | Playwright na demo mock: cofre, navegação, criar lançamento, importar CSV e criar sem rede |
+| `npm run test:e2e` | Playwright na demo mock: cofre, navegação, calendário fiscal, criar lançamento, importar CSV e criar sem rede |
 | `npm run lint` / `npm run typecheck` | ESLint e TypeScript estrito em todo o monorepo |
 
 O CI roda tipos, lint, cobertura, build e o E2E em cada push e pull request; os relatórios de cobertura e do Playwright ficam como artefatos.
@@ -148,9 +159,9 @@ O CI roda tipos, lint, cobertura, build e o E2E em cada push e pull request; os 
 - [x] Previsões, anomalias, simulador de longo prazo
 - [x] Importação de extrato OFX/CSV com regras de categorização
 - [x] Lançamento offline com fila de sincronização (IndexedDB)
+- [x] Calendário fiscal (DAS, DEFIS, IRPF)
 - [ ] Web Push: vencimento do DAS e alerta de orçamento
 - [ ] Resumo mensal em linguagem natural (código e testes prontos; falta deploy da Edge Function com o provedor de LLM)
-- [ ] Calendário fiscal (DAS, DEFIS, IRPF)
 
 ## Licença
 
