@@ -4,7 +4,10 @@
   "version": "0.1.0",
   "description": "Chrise — finanças sem crise. Controle financeiro preditivo para PJ.",
   "type": "module",
-  "workspaces": ["apps/*", "packages/*"],
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "dev": "npm run dev -w @chrise/web",
     "dev:prod": "npm run dev:prod -w @chrise/web",
@@ -13,10 +16,22 @@
     "preview": "npm run preview -w @chrise/web",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:report": "playwright show-report",
     "typecheck": "tsc -p packages/core && tsc -p packages/data && tsc -p apps/web/tsconfig.app.json",
     "lint": "npm run lint -w @chrise/web"
   },
   "devDependencies": {
+    "@playwright/test": "1.64.1",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.8",
+    "@vitest/coverage-v8": "^3.2.7",
+    "fake-indexeddb": "^6.2.8",
+    "jsdom": "^26.1.0",
     "typescript": "^5.8.3",
     "vitest": "^3.2.4"
   }

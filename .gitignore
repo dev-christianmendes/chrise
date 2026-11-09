@@ -9,6 +9,9 @@ dist-ssr
 coverage
 .vite
 *.log
+playwright-report
+test-results
+blob-report
 .DS_Store
 .vscode/*
 !.vscode/extensions.json

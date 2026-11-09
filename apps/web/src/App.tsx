@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthGate } from "./components/AuthGate";
 import { Layout } from "./components/Layout";
 import { PageSkeleton } from "./components/states";
+import { useOutboxSync } from "./hooks/use-sync";
 import Dashboard from "./pages/Dashboard";
 
 // Páginas secundárias em chunks separados: o primeiro carregamento no celular fica leve.
@@ -17,12 +18,23 @@ const Settings = lazy(() => import("./pages/Settings"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
-  defaultOptions: { queries: { staleTime: 30_000, refetchOnWindowFocus: false } },
+  defaultOptions: {
+    // O OfflineRepository decide o que fazer sem rede (fila + último extrato);
+    // sem `always`, o React Query pausaria mutations e a fila nunca rodaria.
+    queries: { staleTime: 30_000, refetchOnWindowFocus: false, networkMode: "always" },
+    mutations: { networkMode: "always" },
+  },
 });
+
+function OutboxSync() {
+  useOutboxSync();
+  return null;
+}
 
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
+      <OutboxSync />
       <TooltipProvider>
         <Toaster position="top-center" />
         <AuthGate>

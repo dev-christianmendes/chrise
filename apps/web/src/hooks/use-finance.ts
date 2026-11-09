@@ -1,8 +1,16 @@
 import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { currentYearMonth, type FinanceSnapshot, type TaxProfile } from "@chrise/core";
+import { currentYearMonth, type FinanceSnapshot, type TaxProfile, type Transaction } from "@chrise/core";
 import type { NewBudget, NewTransaction } from "@chrise/data";
 import { repository } from "@/lib/repository";
+
+function optimisticId(): string {
+  return `optimistic:${globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)}`;
+}
+
+function optimisticTransaction(input: NewTransaction): Transaction {
+  return { ...input, id: optimisticId() };
+}
 
 export const keys = {
   categories: ["categories"] as const,
@@ -57,7 +65,16 @@ export function useCreateTransaction() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: NewTransaction) => repository.createTransaction(input),
-    onSuccess: () => qc.invalidateQueries({ queryKey: keys.transactions }),
+    onMutate: async (input) => {
+      await qc.cancelQueries({ queryKey: keys.transactions });
+      const previous = qc.getQueryData<Transaction[]>(keys.transactions);
+      qc.setQueryData<Transaction[]>(keys.transactions, (current = []) => [optimisticTransaction(input), ...current]);
+      return { previous };
+    },
+    onError: (_error, _input, context) => {
+      if (context?.previous) qc.setQueryData(keys.transactions, context.previous);
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: keys.transactions }),
   });
 }
 
@@ -65,7 +82,17 @@ export function useImportTransactions() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (inputs: NewTransaction[]) => repository.createTransactions(inputs),
-    onSuccess: () => qc.invalidateQueries({ queryKey: keys.transactions }),
+    onMutate: async (inputs) => {
+      await qc.cancelQueries({ queryKey: keys.transactions });
+      const previous = qc.getQueryData<Transaction[]>(keys.transactions);
+      const optimistic = inputs.map(optimisticTransaction);
+      qc.setQueryData<Transaction[]>(keys.transactions, (current = []) => [...optimistic, ...current]);
+      return { previous };
+    },
+    onError: (_error, _inputs, context) => {
+      if (context?.previous) qc.setQueryData(keys.transactions, context.previous);
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: keys.transactions }),
   });
 }
 
@@ -73,7 +100,16 @@ export function useDeleteTransaction() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => repository.deleteTransaction(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: keys.transactions }),
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: keys.transactions });
+      const previous = qc.getQueryData<Transaction[]>(keys.transactions);
+      qc.setQueryData<Transaction[]>(keys.transactions, (current = []) => current.filter((transaction) => transaction.id !== id));
+      return { previous };
+    },
+    onError: (_error, _id, context) => {
+      if (context?.previous) qc.setQueryData(keys.transactions, context.previous);
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: keys.transactions }),
   });
 }
 
