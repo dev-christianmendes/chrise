@@ -46,13 +46,14 @@ export const FATOR_R_THRESHOLD = 0.28;
 
 /** Parâmetros previdenciários que mudam todo ano. Atualize via portaria interministerial. */
 export const INSS_PARAMS = {
-  year: 2025,
+  /** 2026: Decreto 12.797/2025 (mínimo) e Portaria Interministerial MPS/MF nº 13/2026 (teto). */
+  year: 2026,
   /** Contribuinte individual (sócio) sobre pró-labore. */
   rate: 0.11,
   /** Teto do salário de contribuição. */
-  ceiling: R(8_157.41),
+  ceiling: R(8_475.55),
   /** Salário mínimo, piso usual do pró-labore. */
-  minimumWage: R(1_518),
+  minimumWage: R(1_621),
 } as const;
 
 /**
