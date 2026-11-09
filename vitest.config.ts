@@ -10,13 +10,19 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "lcov"],
       reportsDirectory: "coverage",
-      include: ["packages/core/src/**/*.ts", "packages/data/src/**/*.ts", "apps/web/src/**/*.{ts,tsx}"],
+      include: [
+        "packages/core/src/**/*.ts",
+        "packages/data/src/**/*.ts",
+        "apps/web/src/**/*.{ts,tsx}",
+        "supabase/functions/**/*.ts",
+      ],
       exclude: [
         "**/*.test.*",
         "**/*.d.ts",
         "apps/web/src/main.tsx",
         "apps/web/src/vite-env.d.ts",
         "apps/web/src/test/**",
+        "supabase/functions/**/index.ts",
       ],
       thresholds: {
         statements: 80,
@@ -31,6 +37,13 @@ export default defineConfig({
           name: "unit",
           environment: "node",
           include: ["packages/*/src/**/*.test.ts"],
+        },
+      },
+      {
+        test: {
+          name: "edge",
+          environment: "node",
+          include: ["supabase/functions/**/*.test.ts"],
         },
       },
       {

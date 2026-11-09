@@ -17,9 +17,11 @@ import {
   type Category,
   type CategoryGroup,
   type Insight,
+  type MonthSummaryInput,
   type Transaction,
 } from "@chrise/core";
 import { CategoryBadge, Money, Ring, SectionTitle, Sparkline } from "@/components/kit";
+import { MonthSummary } from "@/components/MonthSummary";
 import { ErrorState, PageSkeleton } from "@/components/states";
 import { useSnapshot } from "@/hooks/use-finance";
 import { GROUP_LABEL, groupColor } from "@/lib/category-style";
@@ -61,17 +63,43 @@ export default function Dashboard() {
       .map((b) => ({ ...budgetStatus(b, transactions), category: byCategory.get(b.categoryId) }))
       .sort((a, b) => b.ratio - a.ratio);
 
+    const allowance = monthlyAllowance(snapshot, today);
+    const insights = buildInsights(snapshot);
+    const attention = insights.filter((i) => i.level !== "positive");
+    const in6 = projection.at(-1)!;
+
+    const summary: MonthSummaryInput = {
+      monthLabel: monthName(month),
+      income: allowance.income,
+      taxReserve: allowance.taxReserve,
+      committed: allowance.committed,
+      spent: allowance.spent,
+      freeToSpend: allowance.free,
+      topCategories: spending.slice(0, 3).map((s) => ({
+        name: GROUP_LABEL[s.group],
+        amount: s.total,
+        share: s.share,
+      })),
+      forecastBalance: in6.balance,
+      forecastMonths: 6,
+      attention: attention.slice(0, 3).map((i) => ({
+        level: i.level === "danger" ? "danger" : "warning",
+        title: i.title,
+      })),
+    };
+
     return {
-      allowance: monthlyAllowance(snapshot, today),
+      allowance,
       tax: simplesForMonth(snapshot),
-      in6: projection.at(-1)!,
+      in6,
       sparkline: [...pastBalances, ...projection.map((p) => p.balance)],
       sparkSplit: pastBalances.length - 1,
       spending,
       spentTotal,
       limits,
-      insights: buildInsights(snapshot).filter((i) => i.level !== "positive"),
-      positives: buildInsights(snapshot).filter((i) => i.level === "positive"),
+      summary,
+      insights: attention,
+      positives: insights.filter((i) => i.level === "positive"),
       recent: transactions.filter((t) => t.date <= today).slice(0, 8),
       byCategory,
     };
@@ -193,6 +221,8 @@ export default function Dashboard() {
         </div>
 
         <Alerts insights={model.insights} positives={model.positives} />
+
+        <MonthSummary input={model.summary} />
       </div>
 
       {/* ——— Coluna lateral (desktop) / continuação (celular) ——— */}
