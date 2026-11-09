@@ -82,7 +82,20 @@ Tudo determinístico, explicável e testado em [`packages/core/src/forecast.ts`]
 | z-score modificado (mediana/MAD) | Gastos atípicos, robusto a outliers; com fallback para gasto fixo (MAD = 0) |
 | Juros compostos | Valor futuro com aportes e meses até a meta |
 
-> **O LLM, quando entrar, só explica, nunca calcula.** Os números vêm das funções acima; um modelo de linguagem pode, no máximo, transformar os insights em texto.
+> **O LLM só explica, nunca calcula.** Os números vêm das funções acima; um modelo de linguagem pode, no máximo, transformar os insights em texto.
+
+### Resumo do mês (determinístico por padrão)
+
+`buildMonthSummary` em [`packages/core/src/explain.ts`](packages/core/src/explain.ts) monta o texto do mês a partir dos números já calculados. Em produção, a Edge Function [`supabase/functions/explain`](supabase/functions/explain) pode reescrevê-lo com um LLM compatível com OpenAI, configurado por `LLM_API_URL`, `LLM_API_KEY` e `LLM_MODEL`.
+
+A função exige usuário autenticado, valida o payload agregado e só devolve texto cujos **números existam no resumo original**; se o provedor falhar ou inventar um valor, a UI mantém o texto calculado. Na demo, o botão de IA não aparece — não há promessa de função que não está no ar.
+
+Para habilitar em produção:
+
+```bash
+supabase secrets set LLM_API_URL=... LLM_API_KEY=... LLM_MODEL=...
+supabase functions deploy explain
+```
 
 ## Impostos PJ
 
@@ -112,8 +125,8 @@ npm run build:demo   # build estático da demo (GitHub Pages)
 
 | Comando | O que cobre |
 |---|---|
-| `npm test` | 176 testes: regras do `core`, adapters (mock, Supabase e outbox offline) e UI com Testing Library |
-| `npm run test:coverage` | Cobertura com gate no CI (≥ 80% de linhas/instruções, ≥ 85% de branches) |
+| `npm test` | 194 testes: regras do `core`, adapters (mock, Supabase e outbox offline), Edge Function (validação e guarda numérica) e UI com Testing Library |
+| `npm run test:coverage` | Cobertura com gate no CI (≥ 80% de linhas/instruções, ≥ 85% de branches, ≥ 70% de funções) |
 | `npm run test:e2e` | Playwright na demo mock: cofre, navegação, criar lançamento, importar CSV e criar sem rede |
 | `npm run lint` / `npm run typecheck` | ESLint e TypeScript estrito em todo o monorepo |
 
@@ -132,9 +145,9 @@ O CI roda tipos, lint, cobertura, build e o E2E em cada push e pull request; os 
 - [x] Impostos PJ (DAS, Fator R, simulador de pró-labore)
 - [x] Previsões, anomalias, simulador de longo prazo
 - [x] Importação de extrato OFX/CSV com regras de categorização
-- [ ] Lançamento offline com fila de sincronização (IndexedDB)
+- [x] Lançamento offline com fila de sincronização (IndexedDB)
 - [ ] Web Push: vencimento do DAS e alerta de orçamento
-- [ ] Resumo mensal em linguagem natural (LLM recebendo só métricas agregadas)
+- [ ] Resumo mensal em linguagem natural (código e testes prontos; falta deploy da Edge Function com o provedor de LLM)
 - [ ] Calendário fiscal (DAS, DEFIS, IRPF)
 
 ## Licença
