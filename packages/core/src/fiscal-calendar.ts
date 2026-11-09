@@ -1,4 +1,4 @@
-import { addMonths, monthLabel, toYearMonth } from "./dates";
+import { addDays, addMonths, monthLabel, toYearMonth } from "./dates";
 import type { Cents, ISODate, YearMonth } from "./types";
 
 export type FiscalEventKind = "das" | "defis" | "irpf";
@@ -39,12 +39,6 @@ function daysBetween(from: ISODate, to: ISODate): number {
   const [fy, fm, fd] = parseISO(from);
   const [ty, tm, td] = parseISO(to);
   return Math.round((Date.UTC(ty, tm - 1, td) - Date.UTC(fy, fm - 1, fd)) / 86_400_000);
-}
-
-function addDays(date: ISODate, days: number): ISODate {
-  const [y, m, d] = parseISO(date);
-  const next = new Date(Date.UTC(y, m - 1, d + days));
-  return toISO(next.getUTCFullYear(), next.getUTCMonth() + 1, next.getUTCDate());
 }
 
 function lastDayOfMonth(ym: YearMonth): ISODate {

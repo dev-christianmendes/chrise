@@ -407,6 +407,16 @@ s3_secret_key = "env(S3_SECRET_KEY)"
 # Só usuários autenticados podem gastar tokens do provedor de LLM.
 verify_jwt = true
 
+[functions.register-push]
+verify_jwt = true
+
+[functions.schedule-push]
+verify_jwt = true
+
+[functions.send-push]
+# The function authenticates scheduled calls with PUSH_CRON_SECRET.
+verify_jwt = false
+
 # pg-delta is the schema diff engine for db diff / db pull / db remote commit.
 # Set enabled = false to fall back to the legacy migra engine.
 [experimental.pgdelta]

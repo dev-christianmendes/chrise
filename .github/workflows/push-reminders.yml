@@ -1,0 +1,23 @@
+name: Enviar lembretes financeiros
+
+on:
+  schedule:
+    - cron: "15 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Acionar sender do Supabase
+        env:
+          PUSH_CRON_SECRET: ${{ secrets.PUSH_CRON_SECRET }}
+        run: |
+          curl --fail-with-body --retry 2 --retry-delay 5 \
+            -X POST \
+            -H "x-push-cron-secret: ${PUSH_CRON_SECRET}" \
+            "https://cuoybndqdaaoqlwejxrh.supabase.co/functions/v1/send-push"

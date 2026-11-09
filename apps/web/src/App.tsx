@@ -1,12 +1,16 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { buildPushReminders } from "@chrise/core";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthGate } from "./components/AuthGate";
 import { Layout } from "./components/Layout";
 import { PageSkeleton } from "./components/states";
 import { useOutboxSync } from "./hooks/use-sync";
+import { useSnapshot } from "./hooks/use-finance";
+import { IS_DEMO } from "./lib/repository";
+import { getPushSubscription, schedulePushReminders } from "./lib/push";
 import Dashboard from "./pages/Dashboard";
 
 // Páginas secundárias em chunks separados: o primeiro carregamento no celular fica leve.
@@ -32,10 +36,31 @@ function OutboxSync() {
   return null;
 }
 
+function PushSync() {
+  const { snapshot } = useSnapshot();
+
+  useEffect(() => {
+    if (IS_DEMO || !snapshot) return;
+    let active = true;
+    getPushSubscription()
+      .then((subscription) => {
+        if (!active || !subscription) return;
+        return schedulePushReminders(buildPushReminders({ today: new Date().toISOString().slice(0, 10), snapshot }));
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, [snapshot]);
+
+  return null;
+}
+
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <OutboxSync />
+      <PushSync />
       <TooltipProvider>
         <Toaster position="top-center" />
         <AuthGate>

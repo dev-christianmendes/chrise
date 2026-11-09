@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { ChevronRight, Database, Download, FileUp, Landmark, LogOut, Moon, Percent, RotateCcw, Target } from "lucide-react";
+import { Bell, ChevronRight, Database, Download, FileUp, Landmark, LogOut, Moon, Percent, RotateCcw, Target } from "lucide-react";
 import { formatBRL } from "@chrise/core";
 import { MockRepository } from "@chrise/data";
 import { toast } from "sonner";
@@ -12,6 +12,9 @@ import { useSaveTaxProfile, useTaxProfile } from "@/hooks/use-finance";
 import { useSheetParam, useTheme } from "@/hooks/use-ui";
 import { DATA_SOURCE, IS_DEMO, repository } from "@/lib/repository";
 import { getSupabase } from "@/lib/supabase";
+import { disablePush, enablePush, getPushSubscription, isPushSupported, schedulePushReminders } from "@/lib/push";
+import { useSnapshot } from "@/hooks/use-finance";
+import { buildPushReminders } from "@chrise/core";
 
 function Group({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -38,6 +41,51 @@ function Row({ icon: Icon, title, hint, children }: { icon: typeof Moon; title: 
 }
 
 const rowLink = "flex min-h-[3.75rem] items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/40";
+
+function PushSettings() {
+  const { snapshot } = useSnapshot();
+  const [enabled, setEnabled] = useState(false);
+  const [busy, setBusy] = useState(true);
+
+  useEffect(() => {
+    getPushSubscription().then((subscription) => {
+      setEnabled(Boolean(subscription));
+      setBusy(false);
+    }).catch(() => setBusy(false));
+  }, []);
+
+  if (!isPushSupported()) return null;
+
+  const toggle = async () => {
+    setBusy(true);
+    try {
+      if (enabled) {
+        await disablePush();
+        setEnabled(false);
+        toast.success("Avisos desativados");
+      } else {
+        await enablePush();
+        if (snapshot) await schedulePushReminders(buildPushReminders({ today: new Date().toISOString().slice(0, 10), snapshot }));
+        setEnabled(true);
+        toast.success("Avisos ativados");
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não foi possível configurar os avisos");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Group title="Avisos">
+      <Row icon={Bell} title="Lembretes financeiros" hint="DAS e orçamento perto do limite.">
+        <Button variant="outline" size="sm" onClick={toggle} disabled={busy}>
+          {busy ? "…" : enabled ? "Desativar" : "Ativar"}
+        </Button>
+      </Row>
+    </Group>
+  );
+}
 
 export default function Settings() {
   const qc = useQueryClient();
@@ -79,6 +127,7 @@ export default function Settings() {
       <PageTitle eyebrow="Preferências" title="Ajustes" />
 
       <div className="space-y-7">
+        {!IS_DEMO && <PushSettings />}
         <Group title="Aparência">
           <Row icon={Moon} title="Tema escuro" hint="O cofre fica escuro nos dois temas.">
             <Switch checked={theme === "dark"} onCheckedChange={toggleTheme} aria-label="Tema escuro" />

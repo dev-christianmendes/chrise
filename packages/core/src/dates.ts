@@ -2,6 +2,13 @@ import type { ISODate, YearMonth } from "./types";
 
 export const toYearMonth = (date: ISODate): YearMonth => date.slice(0, 7);
 
+/** Soma dias no calendário UTC: sem horário de verão e sem depender do fuso local. */
+export const addDays = (date: ISODate, n: number): ISODate => {
+  const [y, m, d] = date.split("-").map(Number) as [number, number, number];
+  const next = new Date(Date.UTC(y, m - 1, d + n));
+  return `${next.getUTCFullYear()}-${String(next.getUTCMonth() + 1).padStart(2, "0")}-${String(next.getUTCDate()).padStart(2, "0")}`;
+};
+
 export const addMonths = (ym: YearMonth, n: number): YearMonth => {
   const [y, m] = ym.split("-").map(Number) as [number, number];
   const idx = y * 12 + (m - 1) + n;
