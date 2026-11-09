@@ -50,6 +50,7 @@ chrise/
 ├── packages/core       regras de negócio PURAS: dinheiro, métricas, previsão, impostos, insights
 ├── packages/data       interface FinanceRepository + adapters
 │   ├── mock/           gerador determinístico + edições no localStorage   → demo
+│   ├── offline/        fila IndexedDB + sync do que foi escrito sem rede   → produção
 │   └── supabase/       Postgres + Auth + RLS                              → produção
 └── supabase/migrations schema, RLS e seed de categorias por usuário
 ```
@@ -61,6 +62,7 @@ chrise/
 - **Dinheiro em centavos inteiros.** Nada de `float` para valor monetário, nem no banco (`bigint`).
 - **O `core` não depende de nada.** Funções puras e testadas (`npm test`), reaproveitáveis numa Edge Function, numa CLI ou num app nativo.
 - **Segurança no banco, não no front.** RLS em todas as tabelas e FKs compostas `(id, user_id)`, para ninguém conseguir lançar na conta de outro usuário nem conhecendo o UUID. A anon key é pública por design.
+- **Escrever sem rede não perde lançamento.** Em produção, o `OfflineRepository` enfileira creates, imports e deletes no IndexedDB (ids `pending:`), aplica updates otimistas na UI e drena a fila em ordem quando a rede volta. O React Query usa `networkMode: "always"` para a fila rodar mesmo com `navigator.onLine=false`; erros de rede pausam a drenagem, erros de regra (RLS) são descartados.
 - **Dados mock determinísticos.** PRNG com seed por mês: os gráficos da demo são estáveis e reproduzíveis nos testes. O próprio gerador usa o `core` para calcular o DAS, então a demo é fiscalmente coerente.
 
 ### Por que PWA e não app nativo?
@@ -101,10 +103,21 @@ Requisitos: Node 22 ou mais recente.
 ```bash
 npm install
 npm run dev          # demo com dados mock em http://localhost:8080
-npm test             # testes do core e do gerador mock
+npm test             # testes de unidade, do gerador mock e da UI
 npm run typecheck
 npm run build:demo   # build estático da demo (GitHub Pages)
 ```
+
+### Testes e qualidade
+
+| Comando | O que cobre |
+|---|---|
+| `npm test` | 176 testes: regras do `core`, adapters (mock, Supabase e outbox offline) e UI com Testing Library |
+| `npm run test:coverage` | Cobertura com gate no CI (≥ 80% de linhas/instruções, ≥ 85% de branches) |
+| `npm run test:e2e` | Playwright na demo mock: cofre, navegação, criar lançamento, importar CSV e criar sem rede |
+| `npm run lint` / `npm run typecheck` | ESLint e TypeScript estrito em todo o monorepo |
+
+O CI roda tipos, lint, cobertura, build e o E2E em cada push e pull request; os relatórios de cobertura e do Playwright ficam como artefatos.
 
 ### Produção com Supabase
 

@@ -9,6 +9,9 @@ dist-ssr
 coverage
 .vite
 *.log
+playwright-report
+test-results
+blob-report
 .DS_Store
 .vscode/*
 !.vscode/extensions.json
@@ -23,3 +26,6 @@ privado/
 *.pdf
 *.xml
 supabase/seed.local.sql
+
+# Vínculo local com a Vercel (o .env.local com o token OIDC já é ignorado acima)
+.vercel
