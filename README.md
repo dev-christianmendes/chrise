@@ -57,6 +57,8 @@ chrise/
 
 **Uma base de código, duas fontes de dados.** A UI só conhece `FinanceRepository`, e `VITE_DATA_SOURCE=mock|supabase` escolhe o adapter. A demo nunca baixa o `supabase-js` (import dinâmico): o bundle inicial fica em torno de 220 kB gzip.
 
+As decisões de arquitetura estão registradas em [`docs/adr/`](docs/adr/).
+
 **Decisões que valem explicar:**
 
 - **Dinheiro em centavos inteiros.** Nada de `float` para valor monetário, nem no banco (`bigint`).
