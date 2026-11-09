@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { CalendarDays, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import {
   addMonths,
@@ -80,6 +82,19 @@ export default function Taxes() {
   return (
     <div className="mx-auto max-w-5xl">
       <PageTitle eyebrow={`Simples Nacional · ${monthName(snapshot.month)}`} title="Impostos" />
+
+      <Link
+        to="/calendar"
+        className="surface mb-5 flex items-center gap-3 p-4 transition-colors hover:bg-muted/40"
+        aria-label="Abrir calendário fiscal"
+      >
+        <CalendarDays className="h-5 w-5 shrink-0 text-[hsl(var(--g-impostos))]" />
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold">Calendário fiscal</p>
+          <p className="text-xs text-muted-foreground">DAS, DEFIS e IRPF com os próximos vencimentos.</p>
+        </div>
+        <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+      </Link>
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:gap-6">
         {/* Quanto separar: o faturamento "fatiado" */}

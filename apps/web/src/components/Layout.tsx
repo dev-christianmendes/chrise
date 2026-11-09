@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
-import { ArrowLeftRight, Home, Landmark, Moon, Plus, Settings, Sparkles, Sun, Target, type LucideIcon } from "lucide-react";
+import { ArrowLeftRight, CalendarDays, Home, Landmark, Moon, Plus, Settings, Sparkles, Sun, Target, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSheetParam, useTheme } from "@/hooks/use-ui";
 import { IS_DEMO } from "@/lib/repository";
@@ -19,13 +19,14 @@ const navigation: NavItem[] = [
   { name: "Início", href: "/", icon: Home },
   { name: "Extrato", href: "/transactions", icon: ArrowLeftRight },
   { name: "Impostos", href: "/taxes", icon: Landmark },
+  { name: "Calendário", href: "/calendar", icon: CalendarDays },
   { name: "Futuro", href: "/forecast", icon: Sparkles },
   { name: "Limites", href: "/budgets", icon: Target },
   { name: "Ajustes", href: "/settings", icon: Settings },
 ];
 
 /** Dock do celular: 4 destinos + o botão de lançar no meio, onde o polegar alcança. */
-const dock = [navigation[0]!, navigation[1]!, null, navigation[2]!, navigation[3]!] as const;
+const dock = [navigation[0]!, navigation[1]!, null, navigation[2]!, navigation[4]!] as const;
 
 export function Layout() {
   const [theme, toggleTheme] = useTheme();

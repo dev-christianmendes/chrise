@@ -21,6 +21,10 @@ test.describe("demo mock", () => {
     await expect(page.getByRole("heading", { name: "Impostos" })).toBeVisible();
     await expect(page.getByText("Fator R")).toBeVisible();
 
+    await sidebar(page).getByRole("link", { name: "Calendário" }).click();
+    await expect(page.getByRole("heading", { name: "Calendário fiscal" })).toBeVisible();
+    await expect(page.getByText("Próximos vencimentos")).toBeVisible();
+
     await sidebar(page).getByRole("link", { name: "Futuro" }).click();
     await expect(page.getByRole("heading", { name: "Futuro" })).toBeVisible();
   });
